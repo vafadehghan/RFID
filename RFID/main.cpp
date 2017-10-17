@@ -44,7 +44,8 @@
 -- NOTES:		This function creates the window and is the application entry point.
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdParam, int nCmdShow) {
+int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdParam, int nCmdShow) 
+{
 
 	MSG Msg;
 	WNDCLASSEX Wcl;
@@ -125,7 +126,8 @@ int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdPar
 -- NOTES:		This function processes the messages sent to a window, and takes appropriate actions which is defined by the user.
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
+{
 
 	switch (Message)
 	{
