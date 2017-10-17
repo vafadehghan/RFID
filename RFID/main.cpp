@@ -189,15 +189,12 @@ DWORD WINAPI search(LPVOID i)
 		}
 		else
 		{
-			TextOut(hdc, 1, 1, "                      ", 23);
-			TextOut(hdc, 1, 1, "Readers Found", 14);
 			TextOut(hdc, 1, 2, readers[0]->friendly, 256);
 			EnableMenuItem(hMenu, ID_FILE_CONNECT, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_FILE_DISCONNECT, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_FILE_SEARCH, MF_ENABLED);
 		}
 	}
-	TextOut(hdc, 1, 1, "                      ", 22);
 	return 1;
 }
 
