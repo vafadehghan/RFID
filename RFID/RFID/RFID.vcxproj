@@ -70,8 +70,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\v_vaf\Documents\CST2017\3980 - DataComm\Assignment 2\RFID\RFID\RFID;C:\Users\v_vaf\Documents\CST2017\3980 - DataComm\Assignment 2\RFID\stapi;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\v_vaf\Documents\CST2017\3980 - DataComm\Assignment 2\RFID\stapi;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\stapi;$(IncludePath)</IncludePath>
+    <LibraryPath>..\stapi;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -81,7 +81,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>stapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Will\Source\Repos\RFID\stapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\stapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
