@@ -94,7 +94,11 @@ int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdPar
 		TranslateMessage(&Msg); // translate keybpard messages
 		DispatchMessage(&Msg); // dispatch message and return control to windows
 	}
-
+	for (unsigned int i = 0; i < MAX_THREADS; ++i)
+	{
+		printf("close handle");
+		CloseHandle(threadPool[i]);
+	}
 	return Msg.wParam;
 }
 
@@ -130,7 +134,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		{
 		case ID_FILE_CONNECT:
 			isStop = 0;
-			search();
+			threadPool[0] = CreateThread(NULL, 0, search, NULL, 0, NULL);
 			break;
 		case ID_FILE_DISCONNECT:
 			isStop = 1;
@@ -163,37 +167,38 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 void createConnectThread()
 {
 	EnableMenuItem(hMenu, ID_FILE_SEARCH, MF_GRAYED);
-	CreateThread(NULL, 0, connect, NULL, 0, NULL);
+	threadPool[1] = CreateThread(NULL, 0, connect, NULL, 0, NULL);
 }
 
-void search()
+DWORD WINAPI search(LPVOID i)
 {
 	HDC hdc = GetDC(hwnd);
 
-		numDevices = SkyeTek_DiscoverDevices(&devices);
-		TextOut(hdc, 1, 1, "                      ", 23);
-		TextOut(hdc, 1, 1, "Searching...", 13);
-		if (numDevices == 0)
-		{
-			MessageBox(hwnd, "No Devices found", "", MB_OK);
+	numDevices = SkyeTek_DiscoverDevices(&devices);
+	TextOut(hdc, 1, 1, "                      ", 23);
+	TextOut(hdc, 1, 1, "Searching...", 13);
+	if (numDevices == 0)
+	{
+		MessageBox(hwnd, "No Devices found", "", MB_OK);
+	}
+	else
+	{
+		numReaders = SkyeTek_DiscoverReaders(devices, numDevices, &readers);
+		if (numReaders == 0) {
+			MessageBox(hwnd, "No Readers found", "", MB_OK);
 		}
 		else
 		{
-			numReaders = SkyeTek_DiscoverReaders(devices, numDevices, &readers);
-			if (numReaders == 0) {
-				MessageBox(hwnd, "No Readers found", "", MB_OK);
-			}
-			else
-			{
-				TextOut(hdc, 1, 1, "                      ", 23);
-				TextOut(hdc, 1, 1, "Readers Found", 14);
-				TextOut(hdc, 1, 2, readers[0]->friendly, 256);
-				EnableMenuItem(hMenu, ID_FILE_CONNECT, MF_GRAYED);
-				EnableMenuItem(hMenu, ID_FILE_DISCONNECT, MF_ENABLED);
-				EnableMenuItem(hMenu, ID_FILE_SEARCH, MF_ENABLED);
-			}
+			TextOut(hdc, 1, 1, "                      ", 23);
+			TextOut(hdc, 1, 1, "Readers Found", 14);
+			TextOut(hdc, 1, 2, readers[0]->friendly, 256);
+			EnableMenuItem(hMenu, ID_FILE_CONNECT, MF_GRAYED);
+			EnableMenuItem(hMenu, ID_FILE_DISCONNECT, MF_ENABLED);
+			EnableMenuItem(hMenu, ID_FILE_SEARCH, MF_ENABLED);
 		}
-	
+	}
+	TextOut(hdc, 1, 1, "                      ", 22);
+	return 1;
 }
 
 unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user)

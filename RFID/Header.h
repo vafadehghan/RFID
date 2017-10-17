@@ -2,18 +2,21 @@
 
 #include "windows.h"
 #include "stdafx.h"
-#include "resource.h"
-#include "SkyeTekAPI.h"
-#include "SkyeTekProtocol.h"
+#include "RFID/resource.h"
+#include "../stapi/SkyeTekAPI.h"
+#include "../stapi/SkyeTekProtocol.h"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI connect(LPVOID i);
-void search();
+DWORD WINAPI search(LPVOID i);
 void createConnectThread();
 unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user);
 
+// constants
+constexpr unsigned int MAX_THREADS = 2;
 
 HWND hwnd;
+HANDLE threadPool[MAX_THREADS];
 static TCHAR Name[] = TEXT("RFID");
 unsigned int numDevices;
 LPSKYETEK_DEVICE *devices = NULL;
