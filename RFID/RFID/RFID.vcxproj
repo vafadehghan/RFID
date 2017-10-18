@@ -128,7 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\main.cpp" />
-    <ClCompile Include="..\StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RFID.rc" />

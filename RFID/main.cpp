@@ -1,36 +1,41 @@
-
 #pragma once
+#include "Header.h"
+
 /*------------------------------------------------------------------------------------------------------------------
--- SOURCE FILE:		Application.cpp - The main entry point of the program that houses WinMain and WndProc.
+-- SOURCE FILE:		main.cpp - The main entry point of the program that houses all functions.
 --
--- PROGRAM:			DummyTerminal
+-- PROGRAM:			RFID
 --
 -- FUNCTIONS:		int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdParam, int nCmdShow)
 --					LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
---					INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+--					void createConnectThread()
+--					DWORD WINAPI connect(LPVOID i)
+--					DWORD WINAPI search(LPVOID i)
+--					unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user)
 --
 --
--- DATE:			October 3, 2017
+-- DATE:			October 17, 2017
 --
 --
--- DESIGNER:		Vafa Dehghan Saei
+-- DESIGNER:		Vafa Dehghan Saei, William Murphy
 --
--- PROGRAMMER:		Vafa Dehghan Saei
+-- PROGRAMMER:		Vafa Dehghan Saei, William Murphy
 --
--- NOTES:			This file is the entry point of DummyTerminal the creates the window that stores the terminal.
---					Once a key is setup is completed then users can communicate with another computer through the serial port.
+-- NOTES:			This file is the entry point of RFID, it creates the window that stores the terminal.
+--					Once the user is connected to a RFID reader they can view the tags that are detected by the reader.
+--					The tag info is displayed in a list in the terminal window.
 ----------------------------------------------------------------------------------------------------------------------*/
-#include "Header.h"
+
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION:	WinMain
 --
--- DATE:		October 3, 2017
+-- DATE:		October 17, 2017
 --
 --
--- DESIGNER:	Vafa Dehghan Saei
+-- DESIGNER:	Vafa Dehghan Saei, William Murphy
 --
--- PROGRAMMER:	Vafa Dehghan Saei
+-- PROGRAMMER:	Vafa Dehghan Saei, William Murphy
 --
 -- INTERFACE:	int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdParam, int nCmdShow)
 --					HINSTANCE hInst: A handle to the current instance of the application
@@ -102,16 +107,15 @@ int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdPar
 	return Msg.wParam;
 }
 
-
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION:	WndProc
 --
--- DATE:		October 3, 2017
+-- DATE:		October 17, 2017
 --
 --
--- DESIGNER:	Vafa Dehghan Saei
+-- DESIGNER:	Vafa Dehghan Saei, William Murphy
 --
--- PROGRAMMER:	Vafa Dehghan Saei
+-- PROGRAMMER:	Vafa Dehghan Saei, William Murphy
 --
 -- INTERFACE:	LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 --					HWND hwnd: A handle to the window.
@@ -165,28 +169,69 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION:	createConnectThread()
+--
+-- DATE:		October 17, 2017
+--
+--
+-- DESIGNER:	Vafa Dehghan Saei, William Murphy
+--
+-- PROGRAMMER:	Vafa Dehghan Saei, William Murphy
+--
+-- INTERFACE:	void createConnectThread()
+--
+--
+-- RETURNS:		Void
+--
+-- NOTES:		This function is a wrapper function for the connect() function, it launces connect() in a new thread.
+--
+----------------------------------------------------------------------------------------------------------------------*/
 void createConnectThread()
 {
 	EnableMenuItem(hMenu, ID_FILE_SEARCH, MF_GRAYED);
 	threadPool[1] = CreateThread(NULL, 0, search, NULL, 0, NULL);
 }
 
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION:	connect()
+--
+-- DATE:		October 17, 2017
+--
+--
+-- DESIGNER:	Vafa Dehghan Saei, William Murphy
+--
+-- PROGRAMMER:	Vafa Dehghan Saei, William Murphy
+--
+-- INTERFACE:	DWORD WINAPI connect(LPVOID i)
+--				LPVOID i: The arguments of this thread
+--
+-- RETURNS:		If the function succeeds it returns a 1, else returns a 0
+--
+-- NOTES:		This function looks for the RFID devices connected to the computer, if a reader was found the user
+--				can connect to read mode.
+--
+----------------------------------------------------------------------------------------------------------------------*/
 DWORD WINAPI connect(LPVOID i)
 {
 	HDC hdc = GetDC(hwnd);
 
 	numDevices = SkyeTek_DiscoverDevices(&devices);
-	TextOut(hdc, 1, 1, "                      ", 23);
+	TextOut(hdc, 1, 1, "                         ", 26);
 	TextOut(hdc, 1, 1, "Searching...", 13);
 	if (numDevices == 0)
 	{
 		MessageBox(hwnd, "No Devices found", "", MB_OK);
+		TextOut(hdc, 1, 1, "                         ", 26);
+		return 0;
 	}
 	else
 	{
 		numReaders = SkyeTek_DiscoverReaders(devices, numDevices, &readers);
 		if (numReaders == 0) {
 			MessageBox(hwnd, "No Readers found", "", MB_OK);
+			TextOut(hdc, 1, 1, "                         ", 26);
+			return 0;
 		}
 		else
 		{
@@ -199,6 +244,62 @@ DWORD WINAPI connect(LPVOID i)
 	return 1;
 }
 
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION:	search()
+--
+-- DATE:		October 17, 2017
+--
+--
+-- DESIGNER:	Vafa Dehghan Saei, William Murphy
+--
+-- PROGRAMMER:	Vafa Dehghan Saei, William Murphy
+--
+-- INTERFACE:	DWORD WINAPI search(LPVOID i)
+--				LPVOID i: The arguments of this thread
+--
+-- RETURNS:		If the function succeeds it returns a 1, else returns a 0
+--
+-- NOTES:		This function searches for the tags in the RFID readers range and sends the tag to the callback.
+----------------------------------------------------------------------------------------------------------------------*/
+DWORD WINAPI search(LPVOID i)
+{
+	HDC hdc = GetDC(hwnd);
+
+	lpTags = NULL;
+	st = SkyeTek_SelectTags(readers[0], AUTO_DETECT, tagCallBack, 0, 1, NULL);
+	if (st == SKYETEK_TIMEOUT)
+	{
+		MessageBox(hwnd, "Get Tags Timed out", "", MB_OK);
+		return 0;
+	}
+	else if (st != SKYETEK_SUCCESS)
+	{
+		MessageBox(hwnd, "Get Tags Failed", "", MB_OK);
+		return 0;
+	}
+
+	return 1;
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION:	tagCallBack()
+--
+-- DATE:		October 17, 2017
+--
+--
+-- DESIGNER:	Vafa Dehghan Saei, William Murphy
+--
+-- PROGRAMMER:	Vafa Dehghan Saei, William Murphy
+--
+-- INTERFACE:	unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user)
+--				LPSKYETEK_TAG lpTag: The tag that was detected by the RFID reader
+--				void *user:	The user data, NULL for this program
+--
+--
+-- RETURNS:		If the function if the function is looping it returns a 1, else a 0.
+--
+-- NOTES:		This function is called when the RFID reader detects a tag, it prints the tag info to the screen.
+----------------------------------------------------------------------------------------------------------------------*/
 unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user)
 {
 	SKYETEK_ADDRESS addr;
@@ -231,24 +332,4 @@ unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user)
 	}
 
 	return !isStop;
-}
-
-DWORD WINAPI search(LPVOID i)
-{
-	HDC hdc = GetDC(hwnd);
-
-	lpTags = NULL;
-	st = SkyeTek_SelectTags(readers[0], AUTO_DETECT, tagCallBack, 0, 1, NULL);
-	if (st == SKYETEK_TIMEOUT)
-	{
-		MessageBox(hwnd, "Get Tags Timed out", "", MB_OK);
-		return 0;
-	}
-	else if (st != SKYETEK_SUCCESS)
-	{
-		MessageBox(hwnd, "Get Tags Failed", "", MB_OK);
-		return 0;
-	}
-
-	return 1;
 }
