@@ -97,7 +97,6 @@ int __stdcall WinMain(HINSTANCE hInst, HINSTANCE hprevInstance, LPSTR lspzCmdPar
 	}
 	for (unsigned int i = 0; i < MAX_THREADS; ++i)
 	{
-		printf("close handle");
 		CloseHandle(threadPool[i]);
 	}
 	return Msg.wParam;
@@ -136,7 +135,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 		case ID_FILE_CONNECT:
 			isStop = 0;
-			threadPool[0] = CreateThread(NULL, 0, search, NULL, 0, NULL);
+			threadPool[0] = CreateThread(NULL, 0, connect, NULL, 0, NULL);
 			break;
 		case ID_FILE_DISCONNECT:
 			isStop = 1;
@@ -169,10 +168,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 void createConnectThread()
 {
 	EnableMenuItem(hMenu, ID_FILE_SEARCH, MF_GRAYED);
-	threadPool[1] = CreateThread(NULL, 0, connect, NULL, 0, NULL);
+	threadPool[1] = CreateThread(NULL, 0, search, NULL, 0, NULL);
 }
 
-DWORD WINAPI search(LPVOID i)
+DWORD WINAPI connect(LPVOID i)
 {
 	HDC hdc = GetDC(hwnd);
 
@@ -234,7 +233,7 @@ unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user)
 	return !isStop;
 }
 
-DWORD WINAPI connect(LPVOID i)
+DWORD WINAPI search(LPVOID i)
 {
 	HDC hdc = GetDC(hwnd);
 

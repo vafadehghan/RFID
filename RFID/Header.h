@@ -7,8 +7,8 @@
 #include "../stapi/SkyeTekProtocol.h"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-DWORD WINAPI connect(LPVOID i);
 DWORD WINAPI search(LPVOID i);
+DWORD WINAPI connect(LPVOID i);
 void createConnectThread();
 unsigned char tagCallBack(LPSKYETEK_TAG lpTag, void *user);
 
